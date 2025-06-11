@@ -72,3 +72,5 @@
 
     - name: Load master data into MongoDB
       ansible.builtin.command: mongosh --host mongodb.daws84ss.site </app/db/master-data.js
+      args:
+         warn: false
