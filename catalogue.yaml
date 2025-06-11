@@ -76,7 +76,7 @@
 
     - name: print catalogue output
       ansible.builtin.debug:
-      msg: "{{ catalogue_output }}"
+        msg: "{{ catalogue_output }}"
 
     - name: Load products
       ansible.builtin.shell: mongosh --host mongodb.daws84ss.site < /app/db/master-data.js
