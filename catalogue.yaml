@@ -60,4 +60,15 @@
         name: catalogue
         state: started
 
+    - name: copy mongodb repo
+      ansible.builtin.copy:
+        src: mongo.repo
+        dest: /etc/yum.repos.d/mongo.repo
+      
+    - name: Install mongodb client
+      ansible.builtin.dnf:
+        name: mongodb-mongosh
+        state: present
 
+    - name: Load master data into MongoDB
+      ansible.builtin.command: mongosh --host mongodb.daws84ss.site </app/db/master-data.js
