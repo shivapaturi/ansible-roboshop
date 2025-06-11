@@ -13,6 +13,6 @@
       state: present
   
   - name: Enable and start Mongodb service
-    ansible.builtin.systemd:
+    ansible.builtin.service:
     enable: yes
     state: started
