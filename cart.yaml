@@ -13,7 +13,7 @@
       name: nodejs
       state: present
 
-  - name: create roboshop system cart
+  - name: create roboshop system user
     ansible.builtin.user:
       name: roboshop
       shell: /sbin/nologin
@@ -25,11 +25,10 @@
       path: /app
       state: directory
 
-  - name: Download cart code
+  - name: download cart code
     ansible.builtin.get_url:
-      url: https://roboshop-artifacts.s3.amazonaws.com/cart-v3.zip
+      url: https://roboshop-artifacts.s3.amazonaws.com/cart-v3.zip 
       dest: /tmp/cart.zip
-      
 
   # this module thinks file exist on ansible control server, needs to extract on to remote machine
   # remote_src: yes means files already exist in cart server
@@ -53,7 +52,7 @@
       daemon_reload: true
 
   - name: start and enable cart
-    ansible.builtin.systemd:
+    ansible.builtin.service:
       name: cart
       state: started
       enabled: yes
