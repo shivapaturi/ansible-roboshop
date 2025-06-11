@@ -50,10 +50,14 @@
     - name: Reload systemd daemon
       ansible.builtin.command: systemctl daemon-reload
 
-    - name: Enable and start catalogue service
+    - name: Enable catalogue service
       ansible.builtin.service:
         name: catalogue
         enable: yes
+
+    - name: start catalogue service
+      ansible.builtin.service:
+        name: catalogue
         state: started
 
 
