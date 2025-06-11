@@ -53,7 +53,7 @@
     - name: Enable catalogue service
       ansible.builtin.service:
         name: catalogue
-        enable: yes
+        enabled: yes
 
     - name: start catalogue service
       ansible.builtin.service:
