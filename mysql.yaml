@@ -6,14 +6,12 @@
       ansible.builtin.dnf:
         name: mysql
         state: present
-        
-    - name: enable and start service
+
+    - name: Enable and start MySQL service
       ansible.builtin.service:
-      state: started
-      enabled: yes
+        name: mysqld
+        state: started
+        enabled: yes
 
     - name: Set MySQL root password
       ansible.builtin.command: mysql_secure_installation --set-root-pass RoboShop@1
-      args:
-          creates: /var/log/mysql-root-pass-set
-      register: result
