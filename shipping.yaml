@@ -57,7 +57,7 @@
 
     - name: Install mysql
       ansible.builtin.dnf:
-        name: mys1l 
+        name: mysq1 
         state: present
 
     - name: Load schema into MySQL database
