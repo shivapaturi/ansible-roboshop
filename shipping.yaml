@@ -40,6 +40,11 @@
       args:
         chdir: /app    
 
+    - name: Copy shipping service
+      ansible.builtin.copy:
+        src: shipping.service
+        dest: /etc/systemd/system/shipping.service
+        
     - name: systemctl deamon reload
       ansible.builtin.systemd_service:
         daemon_reload: true
