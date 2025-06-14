@@ -1,4 +1,4 @@
-- name: install shipping component
+- name: configure shipping component
   hosts: shipping
   become: yes
   tasks: 
@@ -44,9 +44,9 @@
       ansible.builtin.systemd_service:
         daemon_reload: true
 
-    - name: start and enable catalogue
+    - name: start and enable shipping
       ansible.builtin.service:
-        name: catalogue
+        name: shipping
         state: started
         enabled: yes
 
