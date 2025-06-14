@@ -7,21 +7,27 @@
       name: "{{ item }}"
       state: installed
     loop:
-    - maven
-    - mysql
-    
+      - maven
+      - mysql
+
   - name: install PyMySQL and cryptography 
     ansible.builtin.pip:
       name: "{{ item }}"
       executable: pip3.9
     loop:
-    - cryptography
-    - PyMySQL
+      - cryptography
+      - PyMySQL
 
   - name: create app directory
     ansible.builtin.file:
       path: /app
       state: directory
+
+  - name: create db directory inside /app
+    ansible.builtin.file:
+      path: /app/db
+      state: directory
+      mode: '0755'
 
   - name: create roboshop system user
     ansible.builtin.user:
@@ -66,15 +72,18 @@
       state: started
       enabled: yes
 
-  # - name: connect to mysql using app user
-  #   community.mysql.mysql_info:
-  #     login_user: shipping
-  #     login_password: RoboShop@1
-  #     login_host: mysql.daws84ss.site
-  #     login_db: cities
+  - name: copy SQL files to remote host
+    ansible.builtin.copy:
+      src: "db/{{ item }}"
+      dest: "/app/db/{{ item }}"
+    loop:
+      - schema.sql
+      - app-user.sql
+      - master-data.sql
 
-  - name: Import data
-    tags: [import]
+  - name: import data into MySQL
+    tags:
+      - import
     community.mysql.mysql_db:
       name: all
       login_user: root
@@ -87,10 +96,9 @@
       - app-user.sql
       - master-data.sql
 
-
   - name: restart shipping
     tags:
-    - import
+      - import
     ansible.builtin.service:
       state: restarted
       name: shipping
