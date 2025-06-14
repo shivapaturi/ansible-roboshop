@@ -72,6 +72,7 @@
 
     - name: import data 
       community.mysql.mysql_db:
+        name: all
         login_user: root
         login_password: RoboShop@1
         login_host: mysql.daws.84ss.site
