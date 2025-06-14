@@ -1,110 +1,94 @@
 - name: configure shipping component
   hosts: shipping
   become: yes
-
-  vars:
-    mysql_host: mysql.daws84ss.site  # ✅ Use the correct MySQL host
-    mysql_root_password: RoboShop@1
-
   tasks:
-    - name: install maven and mysql
-      ansible.builtin.dnf:
-        name: "{{ item }}"
-        state: installed
-      loop:
-        - maven
-        - mysql
+  - name: install maven and mysql
+    ansible.builtin.dnf:
+      name: "{{ item }}"
+      state: installed
+    loop:
+    - maven
+    - mysql
+    
+  - name: install PyMySQL and cryptography 
+    ansible.builtin.pip:
+      name: "{{ item }}"
+      executable: pip3.9
+    loop:
+    - cryptography
+    - PyMySQL
 
-    - name: install PyMySQL and cryptography 
-      ansible.builtin.pip:
-        name: "{{ item }}"
-        executable: pip3.9
-      loop:
-        - cryptography
-        - PyMySQL
+  - name: create app directory
+    ansible.builtin.file:
+      path: /app
+      state: directory
 
-    - name: create app directory
-      ansible.builtin.file:
-        path: /app
-        state: directory
+  - name: create roboshop system user
+    ansible.builtin.user:
+      name: roboshop
+      shell: /sbin/nologin
+      system: true
+      home: /app
 
-    - name: create roboshop system user
-      ansible.builtin.user:
-        name: roboshop
-        shell: /sbin/nologin
-        system: true
-        home: /app
+  - name: download shipping code
+    ansible.builtin.get_url:
+      url: https://roboshop-artifacts.s3.amazonaws.com/shipping-v3.zip 
+      dest: /tmp/shipping.zip
 
-    - name: download shipping code
-      ansible.builtin.get_url:
-        url: https://roboshop-artifacts.s3.amazonaws.com/shipping-v3.zip 
-        dest: /tmp/shipping.zip
+  - name: extract shipping code
+    ansible.builtin.unarchive:
+      src: /tmp/shipping.zip
+      dest: /app
+      remote_src: yes
 
-    - name: extract shipping code
-      ansible.builtin.unarchive:
-        src: /tmp/shipping.zip
-        dest: /app
-        remote_src: yes
+  - name: install maven dependencies
+    ansible.builtin.command: mvn clean package
+    args:
+      chdir: /app
 
-    - name: install maven dependencies
-      ansible.builtin.command: mvn clean package
-      args:
-        chdir: /app
+  - name: rename jar file
+    ansible.builtin.command: mv target/shipping-1.0.jar shipping.jar
+    args:
+      chdir: /app
 
-    - name: rename jar file
-      ansible.builtin.command: mv target/shipping-1.0.jar shipping.jar
-      args:
-        chdir: /app
+  - name: copy shipping service
+    ansible.builtin.copy:
+      src: shipping.service
+      dest: /etc/systemd/system/shipping.service
 
-    - name: copy shipping service
-      ansible.builtin.copy:
-        src: shipping.service
-        dest: /etc/systemd/system/shipping.service
+  - name: daemon reload
+    ansible.builtin.systemd_service:
+      daemon_reload: true
 
-    - name: daemon reload
-      ansible.builtin.systemd_service:
-        daemon_reload: true
+  - name: enable and start shipping
+    ansible.builtin.service:
+      name: shipping
+      state: started
+      enabled: yes
 
-    - name: enable and start shipping
-      ansible.builtin.service:
-        name: shipping
-        state: started
-        enabled: yes
+  # - name: connect to mysql using app user
+  #   community.mysql.mysql_info:
+  #     login_user: shipping
+  #     login_password: RoboShop@1
+  #     login_host: mysql.daws84ss.site
+  #     login_db: cities
 
-    # ✅ NEW TASK: Create /app/db directory
-    - name: Create /app/db directory
-      ansible.builtin.file:
-        path: /app/db
-        state: directory
+  - name: Import MySQL data
+    community.mysql.mysql_db:
+      name: all
+      login_user: root
+      login_password: RoboShop@1
+      login_host: mysql.daws84s.site
+      state: import
+      target: "/app/db/{{ item }}"
+    loop:
+      - schema.sql
+      - app-user.sql
+      - master-data.sql
 
-    # ✅ NEW TASK: Copy SQL files to remote host
-    - name: Copy SQL files to remote
-      ansible.builtin.copy:
-        src: "{{ item }}"
-        dest: "/app/db/{{ item | basename }}"
-        mode: '0644'
-      loop:
-        - db/schema.sql
-        - db/app-user.sql
-        - db/master-data.sql
-
-    # ✅ Import data to MySQL
-    - name: import data
-      tags: [import]
-      community.mysql.mysql_db:
-        name: all
-        login_user: root
-        login_password: "{{ mysql_root_password }}"
-        login_host: "{{ mysql_host }}"
-        state: import
-        target: "{{ item }}"
-      loop:
-        - /app/db/schema.sql
-        - /app/db/app-user.sql
-        - /app/db/master-data.sql
-
-    - name: restart shipping
-      tags: [import]
-      ansible.builtin.service:
-        state: restarted
-        name: shipping
+  - name: restart shipping
+    tags:
+    - import
+    ansible.builtin.service:
+      state: restarted
+      name: shipping
