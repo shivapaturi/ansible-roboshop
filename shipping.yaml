@@ -44,16 +44,16 @@
       ansible.builtin.copy:
         src: shipping.service
         dest: /etc/systemd/system/shipping.service
-        
+
     - name: systemctl deamon reload
       ansible.builtin.systemd_service:
         daemon_reload: true
 
-    - name: start and enable shipping
+    - name: enable and start shipping
       ansible.builtin.service:
         name: shipping
-        state: started
         enabled: yes
+        state: started
 
     - name: Install mysql
       ansible.builtin.dnf:
