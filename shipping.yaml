@@ -55,9 +55,9 @@
         enabled: yes
         state: started
 
-    - name: Install mysql
+    - name: Install MySQL client
       ansible.builtin.dnf:
-        name: mysq1 
+        name: mysql
         state: present
 
     - name: Load schema into MySQL database
