@@ -60,29 +60,12 @@
         name: mysql
         state: present
 
-    - name: Load schema into MySQL database
-      ansible.builtin.command: >
-        mysql -h {{ mysql_host }} -uroot -pRoboShop@1 < /app/db/schema.sql
-      args:
-        chdir: /app
-      environment:
-        MYSQL_PWD: RoboShop@1
-
-    - name: Create MySQL app user for shipping app
-      ansible.builtin.command: >
-        mysql -h {{ mysql_host }} -uroot -pRoboShop@1 < /app/db/app-user.sql
-      args:
-        chdir: /app
-      environment:
-        MYSQL_PWD: RoboShop@1
-
-    - name: Load master data into MySQL database
-      ansible.builtin.command: >
-        mysql -h {{ mysql_host }} -uroot -pRoboShop@1 < /app/db/master-data.sql
-      args:
-        chdir: /app
-      environment:
-        MYSQL_PWD: RoboShop@1
+    - name: connect to mysql using app user
+      community.mysql.mysql_info:
+        login_user: shipping
+        login_password: RoboShop@1
+        login_host: mysql.daws.84ss.site
+        login_db: cities
 
     - name: Restart shipping service
       ansible.builtin.systemd:
